@@ -15,7 +15,6 @@ app.config['MYSQL_USER'] = 'sql9376756'
 app.config['MYSQL_PASSWORD'] = 'TVEnuAcM7v'
 app.config['MYSQL_HOST'] = 'sql9.freemysqlhosting.net'
 app.config['MYSQL_DB'] = 'sql9376756'
-# app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
 
@@ -31,10 +30,10 @@ def create_tables():
                         sigil VARCHAR(255), PRIMARY KEY (houseID))''')
     # Create Battles Table
     cur.execute('''CREATE TABLE Battles (battleID INTEGER AUTO_INCREMENT NOT NULL, name VARCHAR(255),
-                            participants INTEGER, PRIMARY KEY (battleID))''')
+                PRIMARY KEY (battleID))''')
     # Create Religions Table
-    cur.execute('''CREATE TABLE Religions (religionID INTEGER AUTO_INCREMENT NOT NULL, name VARCHAR(255),
-                                practitioners INTEGER, PRIMARY KEY (religionID))''')
+    cur.execute('''CREATE TABLE Religions (religionID INTEGER AUTO_INCREMENT NOT NULL, name VARCHAR(255), 
+                PRIMARY KEY (religionID))''')
     # Create Houses_Battles Table
     cur.execute('''CREATE TABLE Houses_Battles (hid INTEGER, bid INTEGER, PRIMARY KEY (hid, bid))''')
     # Create Houses_Religions Table
@@ -68,6 +67,18 @@ def populate_tables():
     cur.execute("INSERT INTO Persons(firstname, lastname, house) VALUES (%s,%s,%s)", ("Jaime", "Lannister", 2))
     cur.execute("INSERT INTO Persons(firstname, lastname, house) VALUES (%s,%s,%s)", ("Stannis", "Baratheon", 3))
     cur.execute("INSERT INTO Persons(firstname, lastname, house) VALUES (%s,%s,%s)", ("Daenarys", "Targaryen", 4))
+
+    # Battles
+    cur.execute("INSERT INTO Battles(name) VALUES (%s)", ["Blackwater Bay"])
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (1, 1))
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (2, 1))
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (3, 1))
+
+    cur.execute("INSERT INTO Battles(name) VALUES (%s)", ["Battle of the Bastards"])
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (2, 2))
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (3, 2))
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (4, 2))
+
     mysql.connection.commit()
     cur.close()
 
@@ -137,6 +148,17 @@ def update_person(person_id):
     return render_template("update_person.html", houses_details=houses_details, person_info=person_info)
 
 
+@app.route('/delete_person/<person_id>')
+def delete_person(person_id):
+
+    cur = mysql.connection.cursor()
+
+    cur.execute("""DELETE FROM Persons WHERE personID=%s""", person_id)
+    mysql.connection.commit()
+
+    return "Person successfully deleted!"
+
+
 @app.route("/search_results/<q>")
 def search_results(q):
 
@@ -194,9 +216,26 @@ def battles():
     #     return "successfully added battle to database!"
 
     cur = mysql.connection.cursor()
+    cur.execute("""SELECT * FROM Battles""")
+    battles_names = cur.fetchall()
+    cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM Houses")
     houses_details = cur.fetchall()
-    return render_template('battles.html', houses_details=houses_details)
+
+    return render_template('battles.html', houses_details=houses_details, battles_names=battles_names)
+
+
+@app.route("/battles_info/<battle_id>")
+def battle(battle_id):
+
+    cur = mysql.connection.cursor()
+    cur.execute("""SELECT * FROM Battles WHERE battleID = %s""", [battle_id])
+    battle_name = cur.fetchall()
+    cur.execute("""SELECT * FROM Houses
+                    JOIN Houses_Battles ON Houses.houseID = Houses_Battles.hid
+                   WHERE Houses_Battles.bid = %s""", [battle_id])
+    indiv_battle_info = cur.fetchall()
+    return render_template("battle.html", battle_name=battle_name, indiv_battle_info=indiv_battle_info)
 
 
 @app.route("/religions")

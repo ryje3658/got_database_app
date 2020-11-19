@@ -96,23 +96,18 @@
     <tr>
       <th scope="col">#</th>
       <th scope="col">Name of Battle</th>
-      <th scope="col">Participant</th>
-      <th scope="col">Participant</th>
-      <th scope="col">Participant</th>
-      <th scope="col">Participant</th>
+      <th scope="col">Edit</th>
     </tr>
   </thead>
   <tbody>
+  {% for battle in battles_names %}
     <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td><button type="button" class="btn btn-warning">Update</button>
+      <th scope="row">{{ battle[0] }}</th>
+      <td>{{ battle[1] }}</td>
+        <td><button type="button" class="btn btn-warning"><a href="{{ url_for('battle', battle_id = battle[0]) }}">Go to Battle Page</a></button>
            <button type="button" class="btn btn-danger">Delete</button></td>
     </tr>
+  {% endfor %}
   </tbody>
 </table>
 

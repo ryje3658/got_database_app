@@ -92,6 +92,7 @@
       {% endif %}
       {% endfor %}
       <td><button type="button" class="btn btn-warning"><a href="{{ url_for('update_person', person_id = person[0]) }}">Update</a></button>
+      <button type="button" class="btn btn-danger"><a href="{{ url_for('delete_person', person_id = person[0]) }}">Delete</a></button>
     </tr>
   {% endfor %}
   </tbody>
