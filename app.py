@@ -205,15 +205,27 @@ def houses():
 @app.route("/battles", methods=['GET', 'POST'])
 def battles():
 
-    # if request.method == 'POST':
-    #     battle_name = request.form['battle_name']
-    #     participant_1 = request.form['participant_1']
-    #     participant_2 = request.form['participant_2']
-    #     participant_3 = request.form['participant_3']
-    #     participant_4 = request.form['participant_4']
-    #
-    #
-    #     return "successfully added battle to database!"
+    if request.method == 'POST':
+        battle_name = request.form['battle_name']
+        participant_1 = request.form['participant_1']
+        participant_2 = request.form['participant_2']
+        participant_3 = request.form['participant_3']
+        participant_4 = request.form['participant_4']
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO Battles(name) VALUES (%s)", [battle_name])
+        mysql.connection.commit()
+
+        cur.execute("SELECT battleID from Battles WHERE name = %s", [battle_name])
+        relevant_battle_id = cur.fetchall()
+
+        cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_1, relevant_battle_id))
+        cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_2, relevant_battle_id))
+        cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_3, relevant_battle_id))
+        cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_4, relevant_battle_id))
+        mysql.connection.commit()
+
+        return "successfully added battle to database!"
 
     cur = mysql.connection.cursor()
     cur.execute("""SELECT * FROM Battles""")
@@ -229,13 +241,31 @@ def battles():
 def battle(battle_id):
 
     cur = mysql.connection.cursor()
-    cur.execute("""SELECT * FROM Battles WHERE battleID = %s""", [battle_id])
+    cur.execute("""SELECT battleID, name FROM Battles WHERE battleID = %s""", [battle_id])
     battle_name = cur.fetchall()
     cur.execute("""SELECT * FROM Houses
                     JOIN Houses_Battles ON Houses.houseID = Houses_Battles.hid
                    WHERE Houses_Battles.bid = %s""", [battle_id])
     indiv_battle_info = cur.fetchall()
     return render_template("battle.html", battle_name=battle_name, indiv_battle_info=indiv_battle_info)
+
+
+@app.route("/remove_participant/<battle_id>/<house_id>")
+def remove_battle_participant(battle_id, house_id):
+    cur = mysql.connection.cursor()
+    cur.execute("""SELECT battleID FROM Battles WHERE name = %s""", [battle_id])
+    battle_id = cur.fetchall()
+    cur.execute("DELETE FROM Houses_Battles WHERE (hid, bid) = (%s, %s)", (house_id, battle_id))
+    mysql.connection.commit()
+    return "Removed participant from battle!"
+
+
+@app.route("/delete_battle/<battle_id>")
+def delete_battle(battle_id):
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM Battles WHERE battleID = %s", [battle_id])
+    mysql.connection.commit()
+    return "Deleted battle!"
 
 
 @app.route("/religions")

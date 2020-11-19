@@ -105,7 +105,7 @@
       <th scope="row">{{ battle[0] }}</th>
       <td>{{ battle[1] }}</td>
         <td><button type="button" class="btn btn-warning"><a href="{{ url_for('battle', battle_id = battle[0]) }}">Go to Battle Page</a></button>
-           <button type="button" class="btn btn-danger">Delete</button></td>
+           <button type="button" class="btn btn-danger"><a href="{{ url_for('delete_battle', battle_id = battle[0]) }}">Delete</a></button></td>
     </tr>
   {% endfor %}
   </tbody>

@@ -39,12 +39,14 @@
         </form>
   </nav>
 
-    <h4 class="mt-4 ml-4">Battle Information: {{ battle_name[0] }}</h4>
+    <h4 class="mt-4 ml-4">Battle Information: {{ battle_name[0][1] }}</h4>
   <h5 class="ml-3">Participants:</h5>
 
   <ul>
       {% for house in indiv_battle_info %}
-      <li><button type="button" class="btn btn-warning"><a href="">Remove {{ house[1] }} from Battle.</a></button></li>
+      <li><button type="button" class="btn btn-warning"><a href="{{ url_for('remove_battle_participant',
+      house_id = house[0], battle_id = battle_name[0][1] ) }}">
+        Remove {{ house[1] }} from Battle.</a></button></li>
       {% endfor %}
   </ul>
 
