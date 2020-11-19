@@ -27,7 +27,7 @@ def create_tables():
                     lastname VARCHAR(255), house INTEGER, PRIMARY KEY (personID))''')
     # Create Houses Table
     cur.execute('''CREATE TABLE Houses (houseID INTEGER AUTO_INCREMENT, name VARCHAR(255),
-                        sigil VARCHAR(255), PRIMARY KEY (houseID))''')
+                        sigil VARCHAR(255), religion INTEGER, PRIMARY KEY (houseID))''')
     # Create Battles Table
     cur.execute('''CREATE TABLE Battles (battleID INTEGER AUTO_INCREMENT NOT NULL, name VARCHAR(255),
                 PRIMARY KEY (battleID))''')
@@ -36,8 +36,6 @@ def create_tables():
                 PRIMARY KEY (religionID))''')
     # Create Houses_Battles Table
     cur.execute('''CREATE TABLE Houses_Battles (hid INTEGER, bid INTEGER, PRIMARY KEY (hid, bid))''')
-    # Create Houses_Religions Table
-    cur.execute('''CREATE TABLE Houses_Religions (hid INTEGER, rid INTEGER, PRIMARY KEY (hid, rid))''')
     # Create constraints
     return "Tables created successfully!"
 
@@ -47,6 +45,7 @@ def alter_tables():
     cur = mysql.connection.cursor()
     cur.execute("SET FOREIGN_KEY_CHECKS=0")
     cur.execute("ALTER TABLE Persons ADD FOREIGN KEY (house) REFERENCES Houses(houseID)")
+    cur.execute("ALTER TABLE Houses ADD FOREIGN KEY (religion) REFERENCES Religion(religionID)")
     cur.execute("ALTER TABLE Houses_Battles ADD FOREIGN KEY (hid) REFERENCES Houses(houseID)")
     cur.execute("ALTER TABLE Houses_Battles ADD FOREIGN KEY (bid) REFERENCES Battles(battleID)")
     return "Tables altered successfully!"
@@ -83,8 +82,21 @@ def populate_tables():
     cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (1, 3))
     cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (2, 3))
 
+    # Religions
+    cur.execute("INSERT INTO Religions(name) VALUES (%s)", ["Faith of The Seven"])
+    cur.execute("INSERT INTO Religions(name) VALUES (%s)", ["The Old Gods of the Forest"])
+    cur.execute("INSERT INTO Religions(name) VALUES (%s)", ["The Drowned God"])
     mysql.connection.commit()
-    cur.close()
+
+    cur.execute("SET FOREIGN_KEY_CHECKS=0")
+    cur.execute("""UPDATE Houses SET religion=%s WHERE houseID=%s""", (1, 2))
+    cur.execute("""UPDATE Houses SET religion=%s WHERE houseID=%s""", (1, 3))
+    cur.execute("""UPDATE Houses SET religion=%s WHERE houseID=%s""", (2, 1))
+    cur.execute("""UPDATE Houses SET religion=%s WHERE houseID=%s""", (2, 3))
+    cur.execute("""UPDATE Houses SET religion=%s WHERE houseID=%s""", (3, 4))
+    cur.execute("""UPDATE Houses SET religion=%s WHERE houseID=%s""", (3, 4))
+
+    mysql.connection.commit()
 
     return "Populated Tables!"
 
@@ -275,9 +287,79 @@ def delete_battle(battle_id):
     return "Deleted battle!"
 
 
-@app.route("/religions")
+@app.route("/religions", methods=['POST', 'GET'])
 def religions():
-    return render_template('religions.html')
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM Houses")
+    houses_details = cur.fetchall()
+
+    cur.execute("SELECT * FROM Religions")
+    religions_details = cur.fetchall()
+
+    if request.method == 'POST':
+        religion_name = request.form['religion_name']
+        participant_1 = request.form['participant_1']
+        participant_2 = request.form.get('participant_2')
+        participant_3 = request.form.get('participant_3')
+        participant_4 = request.form.get('participant_4')
+
+        # Add the Religion to the database
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO Religions(name) VALUES (%s)", [religion_name])
+        mysql.connection.commit()
+
+        cur.execute("SELECT * FROM Religions WHERE name = %s", [religion_name])
+        religion_of_interest = cur.fetchall()
+        print("ROI: ", religion_of_interest[0][0])
+        mysql.connection.commit()
+
+        cur.execute("SET FOREIGN_KEY_CHECKS=0")
+        cur.execute("""
+                       UPDATE Houses
+                       SET religion=%s
+                       WHERE houseID=%s
+                    """, (religion_of_interest[0][0], participant_1))
+
+        mysql.connection.commit()
+
+        if participant_2 is not None:
+            cur.execute("SET FOREIGN_KEY_CHECKS=0")
+            cur.execute("""
+                                   UPDATE Houses
+                                   SET religion=%s
+                                   WHERE houseID=%s
+                                """, (religion_of_interest[0][0], participant_2))
+        if participant_3 is not None:
+            cur.execute("SET FOREIGN_KEY_CHECKS=0")
+            cur.execute("""
+                                   UPDATE Houses
+                                   SET religion=%s
+                                   WHERE houseID=%s
+                                """, (religion_of_interest[0][0], participant_3))
+        if participant_4 is not None:
+            cur.execute("SET FOREIGN_KEY_CHECKS=0")
+            cur.execute("""
+                                   UPDATE Houses
+                                   SET religion=%s
+                                   WHERE houseID=%s
+                                """, (religion_of_interest[0][0], participant_4))
+        mysql.connection.commit()
+
+        return "successfully added religion to database!"
+
+    return render_template('religions.html', houses_details=houses_details, religions_details=religions_details)
+
+
+@app.route("/religions_info/<religion_id>")
+def religion(religion_id):
+
+    cur = mysql.connection.cursor()
+    cur.execute("""SELECT religionID, name FROM Religions WHERE religionID = %s""", [religion_id])
+    religion_info = cur.fetchall()
+    cur.execute("""SELECT * FROM Houses WHERE religion = %s""", [religion_id])
+    houses_that_practice = cur.fetchall()
+    return render_template("religion.html", religion_info=religion_info, houses_that_practice=houses_that_practice)
 
 
 if __name__ == "__main__":

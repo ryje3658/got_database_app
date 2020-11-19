@@ -39,47 +39,52 @@
         </form>
   </nav>
 
-    <h4 class="mt-4 ml-4">Add a religion by entering its name and the houses that practice it.</h4>
+    <h4 class="mt-4 ml-4">Add a religion by entering its name and the houses that practice it. (Must choose at least 1
+    practitioner.)</h4>
+  <h4 class="ml-4">Click "Go To Religion" to see which Houses practice that religion.</h4>
 
 
-    <form class="ml-4 mt-4">
+    <form method="post" class="ml-4 mt-4">
 
   <div class="form-row align-items-center">
     <div class="col-auto">
       <label class="sr-only" for="inlineFormInput">religion_name</label>
-      <input type="text" class="form-control" id="inlineFormInput" placeholder="Name of Religion">
+      <input type="text" name="religion_name" class="form-control" id="inlineFormInput" placeholder="Name of Religion">
     </div>
     <div class="col-auto mt-2">
     </div>
-       <select class="custom-select col-sm-2">
-      <option selected>Practitioner 1</option>
-      <option value="1">Stark</option>
-      <option value="2">Lannister</option>
-      <option value="3">Examples to be populated by querying houses in final version...</option>
+       <select name="participant_1" class="custom-select col-sm-2">
+         <option value="" selected disabled>Practitioner</option>
+         {% for house in houses_details %}
+      <option value="{{house[0]}}">{{house[1]}}</option>
+         {% endfor %}
     </select>
     <div class="col-auto">
             </div>
-       <select class="custom-select col-sm-2">
-      <option selected>Practitioner 2</option>
-      <option value="1">Stark</option>
-      <option value="2">Lannister</option>
-      <option value="3">Examples to be populated by querying houses in final version...</option>
+    <select name="participant_2" class="custom-select col-sm-2">
+         <option value="" selected disabled>Practitioner</option>
+         {% for house in houses_details %}
+      <option value="{{house[0]}}">{{house[1]}}</option>
+         {% endfor %}
     </select>
     <div class="col-auto">
             </div>
-       <select class="custom-select col-sm-2">
-      <option selected>Practitioner 3</option>
-      <option value="1">Stark</option>
-      <option value="2">Lannister</option>
-      <option value="3">Examples to be populated by querying houses in final version...</option>
+    <select name="participant_3" class="custom-select col-sm-2">
+         <option value="" selected disabled>Practitioner</option>
+         {% for house in houses_details %}
+      <option value="{{house[0]}}">{{house[1]}}</option>
+         {% endfor %}
     </select>
     <div class="col-auto">
             </div>
-       <select class="custom-select col-sm-2">
-      <option selected>Practitioner 4</option>
-      <option value="1">Stark</option>
-      <option value="2">Lannister</option>
+    <select name="participant_4" class="custom-select col-sm-2">
+         <option value="" selected disabled>Practitioner</option>
+         {% for house in houses_details %}
+      <option value="{{house[0]}}">{{house[1]}}</option>
+         {% endfor %}
     </select>
+    <div class="col-auto">
+            </div>
     <div class="col-auto">
       <button type="submit" class="btn btn-success mt-2">Add Religion to Database</button>
     </div>
@@ -93,23 +98,17 @@
     <tr>
       <th scope="col">#</th>
       <th scope="col">Name of Religion</th>
-      <th scope="col">Practitioner</th>
-      <th scope="col">Practitioner</th>
-      <th scope="col">Practitioner</th>
-      <th scope="col">Practitioner</th>
+      <th scope="col">More Info</th>
     </tr>
   </thead>
   <tbody>
+  {% for religion in religions_details %}
     <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td>@mdo</td>
-      <td>Mark</td>
-      <td>Otto</td>
-      <td><button type="button" class="btn btn-warning">Update</button>
-           <button type="button" class="btn btn-danger">Delete</button></td>
+      <th scope="row">{{ religion[0] }}</th>
+      <td>{{ religion[1] }}</td>
+      <td><button type="button" class="btn btn-warning"><a href="{{ url_for('religion', religion_id = religion[0]) }}">Go To Religion</a></button>
     </tr>
+  {% endfor %}
   </tbody>
 </table>
 
