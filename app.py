@@ -79,6 +79,10 @@ def populate_tables():
     cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (3, 2))
     cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (4, 2))
 
+    cur.execute("INSERT INTO Battles(name) VALUES (%s)", ["Battle of the Whispering Wood"])
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (1, 3))
+    cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (2, 3))
+
     mysql.connection.commit()
     cur.close()
 
@@ -209,8 +213,8 @@ def battles():
         battle_name = request.form['battle_name']
         participant_1 = request.form['participant_1']
         participant_2 = request.form['participant_2']
-        participant_3 = request.form['participant_3']
-        participant_4 = request.form['participant_4']
+        participant_3 = request.form.get('participant_3')
+        participant_4 = request.form.get('participant_4')
 
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO Battles(name) VALUES (%s)", [battle_name])
@@ -221,8 +225,10 @@ def battles():
 
         cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_1, relevant_battle_id))
         cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_2, relevant_battle_id))
-        cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_3, relevant_battle_id))
-        cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_4, relevant_battle_id))
+        if participant_3 is not None:
+            cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_3, relevant_battle_id))
+        if participant_4 is not None:
+            cur.execute("INSERT INTO Houses_Battles(hid, bid) VALUES (%s, %s)", (participant_4, relevant_battle_id))
         mysql.connection.commit()
 
         return "successfully added battle to database!"
@@ -263,6 +269,7 @@ def remove_battle_participant(battle_id, house_id):
 @app.route("/delete_battle/<battle_id>")
 def delete_battle(battle_id):
     cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM Houses_Battles WHERE bid = %s", [battle_id])
     cur.execute("DELETE FROM Battles WHERE battleID = %s", [battle_id])
     mysql.connection.commit()
     return "Deleted battle!"
